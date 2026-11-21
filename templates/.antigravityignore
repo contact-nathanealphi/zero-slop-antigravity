@@ -1,0 +1,66 @@
+# .antigravityignore — universal ignore list for Antigravity / Gemini CLI agents.
+# Copy to a project root as `.antigravityignore`.
+# Anything listed here is out of bounds for indexing, reading, and searching.
+
+# Secrets & keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*.json
+*secret*
+
+# Dependencies & environments
+node_modules/
+**/node_modules/
+vendor/
+**/vendor/
+.venv/
+venv/
+**/__pycache__/
+.pnp/
+.pnp.*
+
+# Build & cache
+dist/
+**/dist/
+build/
+**/build/
+.next/
+**/.next/
+.dart_tool/
+**/.dart_tool/
+.gradle/
+**/.gradle/
+**/ios/Pods/
+target/
+coverage/
+.cache/
+out/
+
+# Git, lockfiles & logs
+.git/
+**/.git/
+*.lock
+package-lock.json
+**/package-lock.json
+yarn.lock
+pnpm-lock.yaml
+pubspec.lock
+composer.lock
+**/*.log
+
+# Dumps, archives & heavy media
+*.sql
+*.sql.gz
+*.sqlite
+*.tar.xz
+*.tar.gz
+*.zip
+backups/
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.mp4
+**/*.pdf
