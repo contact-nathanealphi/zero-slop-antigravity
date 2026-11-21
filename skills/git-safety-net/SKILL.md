@@ -1,10 +1,12 @@
 ---
 name: git-safety-net
-description: Automatic Git safety net with a backup commit before any plan that changes 2+ files, and a clean commit after verification.
+description: Use before executing a plan that changes 2+ files or a refactor. Creates a local rollback point and reports hashes. Never pushes.
 ---
 
-- Triggered automatically before executing a plan that changes 2 or more files, or a refactor.
-- Check `git status -s` in the relevant repo. If there are uncommitted changes, create a backup: `git add -A && git commit -m "wip: safety backup before <task-summary>"`.
-- After execution finishes and passes verification, make a clean commit (Conventional Commits).
-- Final report must include: repo, branch, backup commit hash (for rollback), and final commit hash.
-- Never run `git push --force`, `git reset --hard`, or delete a branch without an explicit user instruction.
+- Not a git repo: say so and skip.
+- Record branch and `git rev-parse --short HEAD` as the base hash.
+- If tracked files have uncommitted changes (`git status -s`), save a rollback point without touching history: `h=$(git stash create)` then `git stash store -m "zs-backup: <task>" "$h"`. Restore with `git stash apply <hash>`.
+- Never `git add -A`; never stage untracked files or anything matching the Secret Guard list.
+- After verification, commit (Conventional Commits, only files changed by this task) **only if** the approved plan said "commit" or the user asked.
+- Final report: repo, branch, base hash, backup hash (if any), final commit hash (if any).
+- Never `git push`, `push --force`, `reset --hard`, `clean`, or delete a branch without an explicit instruction.

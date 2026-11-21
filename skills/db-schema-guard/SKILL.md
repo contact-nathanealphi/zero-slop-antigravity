@@ -1,9 +1,10 @@
 ---
 name: db-schema-guard
-description: Guard database schema, ORM, and migration changes, and block destructive commands without explicit confirmation.
+description: Use when touching a database, query, ORM model, or migration. Blocks dumps and destructive commands without explicit confirmation.
 ---
 
-- Triggered when touching a database, query, ORM, or migration.
-- Never open or search SQL dump files (`*.sql` or `*.sql.gz`).
-- Use only `migrations/`, `schema`, ORM models, or light queries (`DESCRIBE` / `SHOW TABLES`).
-- Always ask for explicit confirmation before a destructive command (`DROP`, `TRUNCATE`, `migrate:fresh`, or `DELETE` without `WHERE`).
+- Never open or search dumps: `*dump*.sql`, `*.sql.gz`, `*.sqlite*`, `backups/`.
+- Migration files (including `migrations/*.sql`), schema files, and ORM models are readable.
+- Live DB: read-only introspection only (`DESCRIBE`, `SHOW TABLES`, `\d`).
+- Always ask before `DROP`, `TRUNCATE`, `ALTER ... DROP COLUMN`, `DELETE` / `UPDATE` without `WHERE`, `migrate:fresh`, reset / force-push schema commands, or anything on a non-local database. State the target DB and expected impact. Plan approval does not count as confirmation.
+- Never edit an already-applied migration; add a new one with a rollback path. Never print connection strings.

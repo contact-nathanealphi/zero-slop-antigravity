@@ -1,12 +1,12 @@
 ---
 name: anti-slop-strict
-description: Keep new code clean, repo-native, and free of placeholders or over-engineering.
+description: Use when writing a new feature, module, or page from scratch. Keeps code repo-native, minimal, and free of placeholders.
 ---
 
-- **Strict mimicry:** Read 1–2 similar files in the repo before writing new code. Follow the existing naming, folder structure, state management, and error handling exactly.
-- **Zero obvious comments:** Never write comments that explain *what* the code does (for example `// handle click`). Comments may only explain *why* (a business rule or workaround).
-- **Rule of Three (no over-engineering):** Never create a factory, manager, base class, or helper for logic used only 1–2 times. Write it plainly and directly.
-- **No defensive slop:** No empty `try/catch`, no swallowing errors with `console.log` alone, and no excessive `null` checks on values that are already guaranteed by type.
-- **Zero placeholders:** Never leave `// TODO`, `// ... rest of code`, or mock data pretending to be a finished implementation.
-- **Anti-slop UI:** No generic AI aesthetics (neon purple-blue gradients, excessive glassmorphism, heavy shadows, random emojis on buttons / titles, or cliche copy).
-- **Minimal diff:** Never reformat, re-sort imports, or rename code outside the task scope.
+1. **Strict mimicry:** read 1–2 similar files first; follow the repo's naming, folder structure, state management, and error handling exactly.
+2. **Zero obvious comments:** comments explain *why* (business rule, workaround), never *what*.
+3. **Rule of Three:** no factory / manager / base class / helper for logic used only 1–2 times.
+4. **No defensive slop:** no empty `try/catch`, no swallowing errors with `console.log` alone, no `null` checks on values guaranteed by type.
+5. **Zero placeholders:** no `// TODO`, `// ... rest of code`, or mock data posing as finished work.
+6. **Anti-slop UI:** no generic AI look (neon purple-blue gradients, heavy glassmorphism, heavy shadows, random emojis, cliche copy).
+7. **Minimal diff:** no reformatting, import re-sorting, or renames outside the task scope.

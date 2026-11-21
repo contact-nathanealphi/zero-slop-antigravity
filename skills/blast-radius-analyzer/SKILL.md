@@ -1,8 +1,9 @@
 ---
 name: blast-radius-analyzer
-description: Map every caller of a shared function, helper, or global state before changing it.
+description: Use before changing the signature or behavior of a shared function, helper, core model, or global state. Maps every caller first.
 ---
 
-- Triggered before changing the signature of a shared function, helper, core model, or global state.
-- Run a targeted `grep` to find all callers / consumers in the source folders.
-- List every affected file in the Plan before editing, so no other feature breaks silently.
+- Run a targeted `rg` for the symbol in source folders only (never the whole repo root).
+- Also check indirect use: tests, string references, config, reflection, re-exports.
+- List every affected file in the Plan before editing.
+- If there are more than ~15 callers, propose a staged change (add new API, migrate callers, remove old).

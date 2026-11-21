@@ -1,160 +1,132 @@
 # Zero Slop Antigravity
 
-**Stop burning your 5-hour Antigravity quota in 45 minutes — and stop shipping AI code slop.**
+**Stop burning your Antigravity quota on blind scans, full-log dumps, and AI code slop.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Antigravity Compatible](https://img.shields.io/badge/Antigravity-Compatible-brightgreen)](https://antigravity.google)
-[![15 Modular Skills](https://img.shields.io/badge/Skills-15%20Modular-blue)](skills/)
-[![Model Advisor](https://img.shields.io/badge/Models-Hydrogen%20%7C%20Neon-orange)](core/GEMINI.md)
+[![Antigravity](https://img.shields.io/badge/Antigravity-Gemini%20CLI-brightgreen)](https://antigravity.google)
+[![Validate](https://github.com/contact-nathanealphi/zero-slop-antigravity/actions/workflows/validate.yml/badge.svg)](.github/workflows/validate.yml)
 
-A token-efficient Global Core, strict anti-slop rules, a Secret Guard, and 15 lazy-loaded skills with a **max-2 skill router** — for Google Antigravity / Gemini CLI agents.
-
-By **nathanealphi**.
+A token-efficient **Global Core**, a **Secret Guard**, strict anti-slop rules, and **15 lazy-loaded skills** behind a router that loads at most **1 Work + 1 Guard skill** per phase. By **nathanealphi** · v3.0.0 · [Changelog](CHANGELOG.md)
 
 ---
 
 ## The problem
 
-Default agent behaviour is expensive in exactly the wrong places:
-
-- It scans the whole repo from the root, including `node_modules/`, build output, lockfiles, SQL dumps, and media.
-- It loads every rule and every skill at once, then re-reads files it already saw.
-- It rewrites whole files for a one-function fix, dumps raw logs into chat, and echoes long code back at you.
-- It invents code it never read, leaves `// TODO` placeholders, and adds neon-purple gradients nobody asked for.
-
-The result is familiar: quota gone before lunch, a long diff full of noise, and a review that finds the real bug on the third pass.
+Default agent behavior is expensive in the wrong places: it scans from the repo root (dependencies, build output, dumps), loads every rule at once, rewrites whole files for one-line fixes, pastes raw logs, and invents code it never read.
 
 ## Before / after
 
-| | Before (default agent) | After (Zero Slop) |
+| | Default agent | Zero Slop |
 | :--- | :--- | :--- |
-| **Repo scan** | Blind `grep` / `ls -R` from root, including dependencies and dumps | Targeted reads only; dependencies, build output, lockfiles, dumps, and media ignored |
-| **Context loaded** | All rules, all skills, all the time | Global Core only; at most **2 skills per task**, lazy-loaded |
-| **Edits** | Whole-file rewrites for a small fix | Diff-first, surgical edits to the relevant block only |
-| **Terminal output** | Full raw logs pasted into chat | Filtered (`tail -n 40` / `grep error\|fail`) |
-| **Chat echo** | Long code blocks repeated after every edit | `file:line` + 2–3 sentences |
-| **Secrets** | `.env` and credential files readable by accident | Secret Guard: `.env`, `*.pem`, `*.key` never read, never printed |
-| **New code** | Generic AI style, placeholders, over-engineering | Strict mimicry of the repo, zero placeholders, Rule of Three |
-| **Session end** | Context lost on `/clear` | `session-handoff` writes a 25-line `HANDOFF.md`; resume with `@HANDOFF.md continue` |
+| **Search** | `grep` / `ls -R` from root | `git ls-files` / `rg` on a target folder only |
+| **Context** | All rules, all the time | Core only + max 1 Work + 1 Guard skill, lazy-loaded |
+| **Edits** | Whole-file rewrites | Diff-first, surgical edits |
+| **Terminal** | Raw logs in chat | Filtered / capped output |
+| **Chat** | Code echoed after every edit | `file:line` + 2–3 sentences |
+| **Secrets** | `.env` readable by accident | Secret Guard (see limits below) |
+| **Small tasks** | Always a long plan | Direct fix; plan only for 2+ files |
+| **Destructive ops** | Runs after one approval | Always confirmed separately |
+| **Session end** | Context lost on `/clear` | `checkpoint` → 25-line `HANDOFF.md` |
 
-> **Benchmark note — [personal benchmark, edit to your numbers]:** the gains above are architectural (fewer files read, fewer skills loaded, smaller diffs), not a measured lab benchmark. On my own projects, the visible effect was a session that used to exhaust a 5-hour quota window in under an hour now lasting a full work session, because blind scans and full-log dumps were removed. Measure it on your own repo and replace this paragraph with your numbers.
-
----
+> **No measured benchmark is published.** The gains are architectural (fewer files read, fewer rules loaded, smaller diffs). Measure on your own repo: note quota used for the same task with and without Zero Slop, and compare. PRs with real numbers welcome.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-    U[User Prompt] --> C[Global Core\ncore/GEMINI.md]
-    C --> R[Skill Router\nHard Cap: Max 2 Skills]
-    R --> S[Lazy-Loaded SKILL.md\n1 primary + 1 guard]
-    S --> M[Model Advisor\nHydrogen vs Neon]
-    M --> E[Plan-First Execution\n+ Verification]
+    U[Prompt] --> C[Global Core]
+    C --> R[Router<br/>1 Work + 1 Guard]
+    R --> S[Lazy-loaded SKILL.md]
+    S --> E[Execute + verify]
+    E --> M[Memory skills<br/>on events]
 ```
 
-1. **Global Core** (`core/GEMINI.md`) sets the non-negotiable rules: no blind scans, no hallucination, Secret Guard, filtered output, no code echo.
-2. **Skill Router** picks at most **1 primary + 1 guard skill** from the trigger table. Loading 3+ skills is forbidden.
-3. **Lazy-loaded skills** are read only when their trigger fires — never all at once.
-4. **Model Advisor** routes the work: Hydrogen for clear plans, UI edits, light bugs, and tests; Neon (thinking `medium` / `low`) only for new architecture, complex cross-repo work, or hard debugging.
-5. **Plan-first execution** writes a 5–7 point plan, waits for one approval, then runs to completion — with an emergency brake after the same error twice.
+1. **Global Core** (`core/GEMINI.md`): hard rules, workflow, router.
+2. **Router** picks by type: **Work** (do the job), **Guard** (protect it), **Memory** (event-driven, tiny, not counted). If several Guards apply: `db-schema-guard` > `blast-radius-analyzer` > `version-lock-guard` > `git-safety-net`. The final review swaps in `adversarial-reviewer`.
+3. **Small task** (1 file / 1 block): done directly. **Larger task**: `Active skills: [...]` + 5–7 point plan, one approval (`gas` / `ok` / `go` / `lanjut`), then run to the end.
+4. **Always confirmed** even after approval: `rm -rf`, any `git push`, `reset --hard`, `git clean`, `DROP` / `TRUNCATE`, `DELETE` / `UPDATE` without `WHERE`, deploys, unplanned installs.
 
----
-
-## Quick start
-
-### Option A — 1-line install (recommended)
+## Install
 
 ```bash
+# Latest
 curl -fsSL https://raw.githubusercontent.com/contact-nathanealphi/zero-slop-antigravity/main/install.sh | bash
+
+# Pinned to a release (recommended for teams)
+curl -fsSL https://raw.githubusercontent.com/contact-nathanealphi/zero-slop-antigravity/v3.0.0/install.sh | ZS_REF=v3.0.0 bash
 ```
 
-What it does: installs the Global Core to `~/.gemini/GEMINI.md` and the 15 skills to `~/.agent/skills/`. It is idempotent — already-installed files are skipped, and an existing `GEMINI.md` is backed up to `~/.gemini/GEMINI.md.bak.<timestamp>` before replacement.
+Flags (append with `bash -s -- <flag>`): `--dry-run` · `--force` · `--init-local` · `--uninstall` · `--no-verify`.
+
+- Core is added to `~/.gemini/GEMINI.md` inside `<!-- zero-slop:begin -->` … `<!-- zero-slop:end -->`. **Your own content is preserved**; the file is backed up first.
+- Skills go to `~/.agent/skills/` (override: `ZS_SKILLS_DIR`). Modified skills are kept unless `--force` (then backed up).
+- Everything is downloaded and checked against `SHA256SUMS` *before* anything is written. The checksum guards against corrupted downloads; for supply-chain safety, pin a tag and read the script first.
+- `--init-local` writes `.antigravityignore` and `.geminiignore` into the current project.
+- **Windows:** use WSL or Git Bash for the installer. The Core lists PowerShell equivalents for filtered output.
+
+**No script?** Paste [`MASTER_PROMPT.md`](MASTER_PROMPT.md) into Antigravity (generated from these files; installs the same thing).
+
+### Verify on your setup
+
+Paths and names depend on your Antigravity version. Check once: that global skills load from `~/.agent/skills/` (else set `ZS_SKILLS_DIR`), that `.antigravityignore` / `.geminiignore` is honored, and that the model names in Core §4 exist.
+
+## What Secret Guard is — and is not
+
+It is a **prompt-level rule plus an ignore list**: it steers the agent away from `.env*`, keys, and credentials and tells it to redact them. It is **not** OS-level protection or a sandbox. Keep real secrets out of repos, add `.env*` to `.gitignore`, and use your tool's permission settings for hard enforcement.
+
+## The 15 skills
+
+| Type | Skill | Trigger |
+| :--- | :--- | :--- |
+| Work | `ultra-quota-guard` | > 5 files / massive refactor: diff-first, surgical edits, session split |
+| Work | `anti-slop-strict` | New feature / module / page: 7 pillars (mimicry, no what-comments, Rule of Three, no defensive slop, zero placeholders, anti-slop UI, minimal diff) |
+| Work | `surgical-debugger` | Bug / crash / build error: top project frame, ~30 lines, one hypothesis |
+| Work | `edge-state-checklist` | Page / component: Loading, Empty, Error, Overflow |
+| Work | `design-token-enforcer` | Styling: project tokens only, no hardcoded values |
+| Work | `api-contract-sync` | Endpoint / payload change: sync both sides |
+| Work | `qa-triage-runner` | Tests / QA: capped output, 3-point summary |
+| Guard | `db-schema-guard` | Migration / query / ORM: no dumps, confirm destructive SQL |
+| Guard | `blast-radius-analyzer` | Shared function / core change: map callers first |
+| Guard | `version-lock-guard` | Third-party library: verify against the installed version |
+| Guard | `git-safety-net` | 2+ file plan: local rollback point, hashes, never pushes |
+| Guard | `adversarial-reviewer` | Final review: audit this task's diff |
+| Memory | `session-handoff` | `checkpoint` / before `/clear`: 25-line `HANDOFF.md` |
+| Memory | `lesson-learner` | User correction: 1–2 lines in `LESSONS.md` (max 40 lines) |
+| Memory | `rekap-auto-updater` | Feature verified: 3–5 lines appended to `PROGRESS.md` |
+
+Each skill's `description` carries its trigger so Antigravity can discover it. Force one manually: `use anti-slop-strict for this page`.
+
+## Daily workflow
+
+- **Start:** describe the task. Small → done. Larger → plan → reply `gas`.
+- **Checkpoint:** type `checkpoint`, then `/clear`; resume with `@HANDOFF.md continue`.
+- **Long chat:** `/compact` after ~10 turns.
+- **Model routing:** cheap model for clear plans, UI edits, light bugs, tests; strong model for new architecture and hard debugging.
+
+## Uninstall
 
 ```bash
-# Reinstall / overwrite everything
-curl -fsSL https://raw.githubusercontent.com/contact-nathanealphi/zero-slop-antigravity/main/install.sh | bash -s -- --force
-
-# Also drop a .antigravityignore into the current project
-curl -fsSL https://raw.githubusercontent.com/contact-nathanealphi/zero-slop-antigravity/main/install.sh | bash -s -- --init-local
+curl -fsSL https://raw.githubusercontent.com/contact-nathanealphi/zero-slop-antigravity/main/install.sh | bash -s -- --uninstall
 ```
 
-### Option B — Copy-paste, no script
+Removes the Core block (your other content stays) and the 15 skills; `.bak.*` backups are kept.
 
-1. Open [`MASTER_PROMPT.md`](MASTER_PROMPT.md).
-2. Copy the whole prompt into Antigravity.
-3. The agent installs the Global Core, the 15 skills, and a local `.antigravityignore` + project `GEMINI.md` in one batch. If everything is already installed, it skips to the local setup only. Add `force update` to reinstall.
-
----
-
-## The 15 modular skills
-
-| Skill | Category | Trigger | What it does |
-| :--- | :--- | :--- | :--- |
-| `ultra-quota-guard` | Quota | Large task (> 5 files) / massive refactor | Diff-first, surgical edits, budget check, split into 2 sessions if needed |
-| `session-handoff` | Memory | `checkpoint` / before `/clear` | Writes a 25-line `HANDOFF.md` so the next session resumes cleanly |
-| `lesson-learner` | Memory | User corrects a pattern or technical choice | Records 1–2 permanent lines in `LESSONS.md` |
-| `rekap-auto-updater` | Memory | Large feature or QA stage done | Appends a 3–5 line progress update, never rewrites the file |
-| `blast-radius-analyzer` | Safety | Editing a shared function / core / global state | Maps every caller before the edit |
-| `version-lock-guard` | Correctness | New feature using a third-party library | Verifies APIs against the exact installed version |
-| `git-safety-net` | Safety | Plan changes >= 2 files | Backup commit before, clean commit after, rollback hash reported |
-| `db-schema-guard` | Safety | Migration / table / query / ORM | Blocks SQL dumps and destructive commands without confirmation |
-| `anti-slop-strict` | Quality | Writing a feature / module / page from scratch | 7 pillars: mimicry, no obvious comments, Rule of Three, no defensive slop, zero placeholders, anti-slop UI, minimal diff |
-| `api-contract-sync` | Correctness | Endpoint / payload / API model change | Syncs the contract on both sides with a targeted grep |
-| `edge-state-checklist` | UI | Creating / reworking a page or component | Loading, Empty, Error, and Overflow handled explicitly |
-| `design-token-enforcer` | UI | Styling a component / page | Forces project tokens / theme, no hardcoded hex or random sizes |
-| `surgical-debugger` | Debugging | Bug / crash / build error | One hypothesis from the top project stack frame, ~30 lines of context |
-| `qa-triage-runner` | QA | Running automated tests / QA | Filtered output, 3-point summary: Pass/Fail, location, root cause |
-| `adversarial-reviewer` | Review | Final review on critical logic | Strict `git diff` audit: null edges, races, N+1, leaks, validation gaps |
-
----
-
-## Daily workflow cheat sheet
-
-- **Start a task:** describe it. The agent writes `Active skills: [...]` + a 5–7 point plan, then waits for one approval.
-- **Approve and run:** reply `gas`, `ok`, or `go`. The agent finishes the whole plan without asking again.
-- **Checkpoint:** type `checkpoint` — the agent writes `HANDOFF.md`, then you can safely run `/clear`. Resume later with `@HANDOFF.md continue`.
-- **Long chat:** run `/compact` after 10 turns, or `session-handoff` + `/clear` when a feature is done.
-- **Model routing:** Hydrogen for clear plans, UI edits, light bugs, and tests. Neon (`medium` / `low`) only for new architecture, complex cross-repo integration, or hard debugging. Argon (low thinking) is a budget fallback when Neon credit is tight — same rules, smaller thinking budget.
-- **Manual routing:** if the router picks wrong, name the skill in your message, for example: `use anti-slop-strict for this page`.
-
----
-
-## Project layout
+## Layout
 
 ```text
-zero-slop-antigravity/
-├── README.md
-├── LICENSE
-├── .gitignore
-├── install.sh
-├── MASTER_PROMPT.md
-├── core/
-│   └── GEMINI.md
-├── templates/
-│   └── .antigravityignore
-└── skills/
-    ├── ultra-quota-guard/SKILL.md
-    ├── session-handoff/SKILL.md
-    ├── lesson-learner/SKILL.md
-    ├── rekap-auto-updater/SKILL.md
-    ├── blast-radius-analyzer/SKILL.md
-    ├── version-lock-guard/SKILL.md
-    ├── git-safety-net/SKILL.md
-    ├── db-schema-guard/SKILL.md
-    ├── anti-slop-strict/SKILL.md
-    ├── api-contract-sync/SKILL.md
-    ├── edge-state-checklist/SKILL.md
-    ├── design-token-enforcer/SKILL.md
-    ├── surgical-debugger/SKILL.md
-    ├── qa-triage-runner/SKILL.md
-    └── adversarial-reviewer/SKILL.md
+├── core/GEMINI.md            # Global Core + router
+├── skills/<name>/SKILL.md    # 15 skills
+├── templates/.antigravityignore
+├── install.sh                # installer
+├── MASTER_PROMPT.md          # generated, no-script install
+├── SHA256SUMS                # generated
+├── VERSION  CHANGELOG.md
+└── scripts/                  # build-master-prompt, gen-checksums, validate, dev
 ```
-
----
 
 ## Contributing
 
-Issues and pull requests are welcome. Keep contributions in the spirit of the project: small, surgical, and in plain technical English. If you change a skill, keep its YAML frontmatter (`name` and `description`) valid and its trigger table entry in `core/GEMINI.md` in sync.
+Edit `core/` or `skills/`, then run `bash scripts/dev.sh`: it regenerates `MASTER_PROMPT.md` and `SHA256SUMS` and validates frontmatter (name, one-line description with trigger, ≤ 1500 bytes), router ↔ folders ↔ installer ↔ README consistency, and shell syntax. CI runs the same checks. Keep contributions small, surgical, and in plain technical English.
 
 ## License
 

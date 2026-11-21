@@ -1,8 +1,9 @@
 ---
 name: session-handoff
-description: Save a session summary to HANDOFF.md before /clear or at a feature checkpoint.
+description: Use only when the user says checkpoint or handoff, or is about to run /clear. Writes a HANDOFF.md of at most 25 lines.
 ---
 
-- Triggered when the user types "checkpoint" or "handoff", or when one feature is done.
-- Write / overwrite `HANDOFF.md` at the workspace root (max 25 lines): last status, files changed, Git status (branch and hash), blockers, and next steps (1–3 points).
-- Tell the user it is safe to run `/clear`; a new session only needs to type `@HANDOFF.md continue`.
+- Owns `HANDOFF.md` exclusively. Do not trigger just because a feature finished (that is `rekap-auto-updater`).
+- Write / overwrite `HANDOFF.md` at the workspace root, max 25 lines: last status, files changed, git branch and hash, blockers, next steps (1–3).
+- Never include secrets, tokens, or `.env` values.
+- Tell the user it is safe to run `/clear`; resume with `@HANDOFF.md continue`.

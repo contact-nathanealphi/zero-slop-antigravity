@@ -1,15 +1,30 @@
-# .antigravityignore — universal ignore list for Antigravity / Gemini CLI agents.
-# Copy to a project root as `.antigravityignore`.
-# Anything listed here is out of bounds for indexing, reading, and searching.
+# Zero Slop ignore list for Antigravity / Gemini CLI agents.
+# Copy to a project root as `.antigravityignore` (installer also writes `.geminiignore`).
+# Out of bounds for indexing, reading, and searching.
+# NOTE: this is a request to the agent, not OS-level protection. Keep real secrets out of the repo.
 
 # Secrets & keys
 .env
 .env.*
 !.env.example
+!.env.sample
 *.pem
 *.key
-*credentials*.json
-*secret*
+*.p12
+*.pfx
+*.keystore
+id_rsa*
+id_ed25519*
+.npmrc
+.pypirc
+.netrc
+credentials*.json
+service-account*.json
+secrets/
+secrets.json
+secrets.y*ml
+secrets.toml
+*.secret
 
 # Dependencies & environments
 node_modules/
@@ -39,7 +54,8 @@ coverage/
 .cache/
 out/
 
-# Git, lockfiles & logs
+# Git, logs & lockfiles
+# Lockfiles are skipped for indexing; version-lock-guard may look up ONE package in them.
 .git/
 **/.git/
 *.lock
@@ -51,16 +67,28 @@ pubspec.lock
 composer.lock
 **/*.log
 
-# Dumps, archives & heavy media
-*.sql
+# Dumps, archives & heavy binaries (migrations/*.sql stay readable)
+*dump*.sql
+*backup*.sql
 *.sql.gz
 *.sqlite
-*.tar.xz
-*.tar.gz
-*.zip
+*.sqlite3
+*.db
 backups/
-**/*.png
-**/*.jpg
-**/*.jpeg
-**/*.mp4
-**/*.pdf
+*.zip
+*.tar
+*.tar.gz
+*.tar.xz
+*.7z
+*.rar
+*.mp4
+*.mov
+*.mp3
+*.wav
+*.pdf
+
+# Test artifacts
+**/playwright-report/
+**/test-results/
+**/screenshots/
+**/traces/

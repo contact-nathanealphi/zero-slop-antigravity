@@ -1,8 +1,10 @@
 ---
 name: api-contract-sync
-description: Keep endpoint, payload, and JSON response contracts in sync between backend and frontend.
+description: Use when changing an endpoint, payload, JSON response, or API model. Keeps backend and frontend contracts in sync.
 ---
 
-- Triggered when changing an endpoint, payload, JSON response, or API model.
-- Identify only the endpoints and fields that changed, then run a targeted `grep` in the counterpart repo / folder (never a full scan).
-- Verify JSON parsing, null-safety, and error handling on both sides, then report the sync status in 2–3 sentences.
+- List only the endpoints and fields that changed.
+- Run a targeted `rg` in the counterpart repo / folder (never a full scan) for each changed endpoint or field.
+- Verify JSON parsing, null-safety, and error handling on both sides.
+- If the change is breaking, list consumers and propose a backward-compatible path.
+- Report sync status in 2–3 sentences.
