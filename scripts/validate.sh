@@ -4,9 +4,18 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 fail=0
 err() { echo "FAIL: $*"; fail=1; }
-dirs="$(ls -1 skills | sort)"
+dirs_glob() {
+  local p
+  for p in skills/*/; do
+    [ -d "$p" ] || continue
+    p="${p%/}"
+    printf '%s\n' "${p##*/}"
+  done | LC_ALL=C sort
+}
+dirs="$(dirs_glob)"
 
-for d in $dirs; do
+while IFS= read -r d; do
+  [ -n "$d" ] || continue
   f="skills/$d/SKILL.md"
   [ -f "$f" ] || { err "$f missing"; continue; }
   [ "$(sed -n 1p "$f")" = "---" ] || err "$f: frontmatter must start on line 1"
@@ -17,15 +26,22 @@ for d in $dirs; do
   case "$desc" in *": "*) err "$f: description contains ': ' (breaks YAML)";; esac
   [ "$(sed -n 4p "$f")" = "---" ] || err "$f: frontmatter must close on line 4"
   [ "$(wc -c < "$f")" -le 1500 ] || err "$f: larger than 1500 bytes"
-done
+done <<EOF
+$dirs
+EOF
 
-core="$(grep -oE '^\| (Work|Guard|Memory) \| `[a-z-]+`' core/GEMINI.md | grep -oE '`[a-z-]+`' | tr -d '`' | sort)"
+core="$(grep -oE '^\| (Work|Guard|Memory) \| `[a-z-]+`' core/GEMINI.md | grep -oE '`[a-z-]+`' | tr -d '`' | LC_ALL=C sort)"
 [ "$core" = "$dirs" ] || err "Core router table does not match skills/ folders"
 
-inst="$(awk '/^SKILLS=\(/{f=1;next} f&&/^\)/{f=0} f{gsub(/[ \t]/,""); if(length($0)) print}' install.sh | sort)"
+inst="$(awk '/^SKILLS=\(/{f=1;next} f&&/^\)/{f=0} f{gsub(/[ \t]/,""); if(length($0)) print}' install.sh | LC_ALL=C sort)"
 [ "$inst" = "$dirs" ] || err "install.sh SKILLS array does not match skills/ folders"
 
-for d in $dirs; do grep -q "\`$d\`" README.md || err "README.md does not mention $d"; done
+while IFS= read -r d; do
+  [ -n "$d" ] || continue
+  grep -q "\`$d\`" README.md || err "README.md does not mention $d"
+done <<EOF
+$dirs
+EOF
 
 v="$(cat VERSION)"
 grep -q "^VERSION=\"$v\"" install.sh || err "install.sh VERSION != VERSION file ($v)"

@@ -38,10 +38,11 @@ Install the **Zero Slop** system (Global Core + 15 skills) and set up this works
 HEAD
 fence markdown core/GEMINI.md
 printf '## Phase 2 — 15 skills → `~/.agent/skills/<name>/SKILL.md`\n\n'
-for d in $(ls -1 skills | sort); do
+while IFS= read -r d; do
+  [ -n "$d" ] || continue
   printf '### %s\n\n' "$d"
   fence markdown "skills/$d/SKILL.md"
-done
+done < <(for p in skills/*/; do [ -d "$p" ] || continue; p="${p%/}"; printf '%s\n' "${p##*/}"; done | LC_ALL=C sort)
 cat <<'MID'
 ---
 

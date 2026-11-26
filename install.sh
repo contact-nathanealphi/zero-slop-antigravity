@@ -203,6 +203,9 @@ install_core() {
     say "Core: migrated v2 install to a managed block."; N_UPDATED=$((N_UPDATED+1)); return
   fi
 
+  if grep -qE '^# Global Core' "$CORE_FILE"; then
+    warn "Existing '# Global Core' section found in $CORE_FILE outside zero-slop markers — review it to avoid duplicate rules."
+  fi
   backup "$CORE_FILE"
   if [ "$DRY" != true ]; then { printf '\n'; cat "$new"; } >> "$CORE_FILE"; fi
   say "Core: appended as a managed block (your existing content is preserved)."
