@@ -37,6 +37,7 @@ Install the **Zero Slop** system (Global Core + 15 skills) and set up this works
 
 HEAD
 fence markdown core/GEMINI.md
+# shellcheck disable=SC2016
 printf '## Phase 2 — 15 skills → `~/.agent/skills/<name>/SKILL.md`\n\n'
 while IFS= read -r d; do
   [ -n "$d" ] || continue

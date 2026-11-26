@@ -30,6 +30,7 @@ done <<EOF
 $dirs
 EOF
 
+# shellcheck disable=SC2016
 core="$(grep -oE '^\| (Work|Guard|Memory) \| `[a-z-]+`' core/GEMINI.md | grep -oE '`[a-z-]+`' | tr -d '`' | LC_ALL=C sort)"
 [ "$core" = "$dirs" ] || err "Core router table does not match skills/ folders"
 
