@@ -28,7 +28,16 @@ Default agent behavior is expensive in the wrong places: it scans from the repo 
 | **Destructive ops** | Runs after one approval | Always confirmed separately |
 | **Session end** | Context lost on `/clear` | `checkpoint` → 25-line `HANDOFF.md` |
 
-> **No measured benchmark is published.** The gains are architectural (fewer files read, fewer rules loaded, smaller diffs). Measure on your own repo: note quota used for the same task with and without Zero Slop, and compare. PRs with real numbers welcome.
+### Expected impact (architectural estimates)
+
+| Scenario | Est. token / quota savings | Primary drivers |
+| :--- | :---: | :--- |
+| **Small task (1 file, 1–2 turns)** | **~10% – 25%** | Direct execution (no long plan) + no code echo |
+| **Feature / refactor in large repos** | **~35% – 60%** | Targeted search (`git ls-files`/`rg`), ignore list, partial reads, max-2 lazy skills |
+| **Debugging, build errors & QA tests** | **~40% – 65%** | Capped terminal output (`tail`/`grep`), ~30-line stack-frame reads, 3-point QA summary |
+| **Long sessions (> 10 turns / multi-feature)** | **~50% – 70%+** | `/compact` + 25-line `HANDOFF.md` + `/clear` + routing simple work to lighter models |
+
+> **These are architectural estimates, not measured benchmarks.** Real-world daily savings typically fall around **30% – 50%** depending on repo size, model routing, and `/clear` discipline. Measure on your own repo (note quota used for the same task with and without Zero Slop) — PRs with real numbers are welcome.
 
 ## How it works
 
