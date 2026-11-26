@@ -1,4 +1,4 @@
-# Master Prompt — Zero Slop Antigravity v3.0.0
+# Master Prompt — Zero Slop Antigravity v3.0.1
 
 > Copy this whole prompt into Antigravity. No script needed.
 > Generated from the repo files by `scripts/build-master-prompt.sh`. Do not edit by hand.
@@ -361,6 +361,13 @@ target/
 coverage/
 .cache/
 out/
+.turbo/
+.nuxt/
+.svelte-kit/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.tsbuildinfo
 
 # Git, logs & lockfiles
 # Lockfiles are skipped for indexing; version-lock-guard may look up ONE package in them.

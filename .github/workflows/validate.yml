@@ -9,6 +9,10 @@ jobs:
       - name: Installer smoke test
         run: |
           export HOME="$(mktemp -d)"
+          WORK="$(mktemp -d)"
           bash install.sh
           bash install.sh --dry-run
+          (cd "$WORK" && bash "$GITHUB_WORKSPACE/install.sh" --init-local)
+          test -f "$WORK/.antigravityignore" && test -f "$WORK/.geminiignore"
           bash install.sh --uninstall
+          rm -rf "$WORK"

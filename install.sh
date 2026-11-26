@@ -21,7 +21,7 @@
 # modified is backed up to <file>.bak.<timestamp>; nothing outside the 15 skills is deleted.
 set -euo pipefail
 
-VERSION="3.0.0"
+VERSION="3.0.1"
 REPO="contact-nathanealphi/zero-slop-antigravity"
 REF="${ZS_REF:-main}"
 BASE_URL="${ZS_BASE_URL:-https://raw.githubusercontent.com/${REPO}/${REF}}"
@@ -91,7 +91,7 @@ STAGE="$TMP/stage"
 strip_block() { awk -v b="$MARK_BEGIN" -v e="$MARK_END" '$0==b{s=1;next} s&&$0==e{s=0;next} !s' "$1"; }
 
 if [ "$UNINSTALL" = true ]; then
-  if [ -f "$CORE_FILE" ] && grep -qxF "$MARK_BEGIN" "$CORE_FILE"; then
+  if [ -f "$CORE_FILE" ] && grep -qxF "$MARK_BEGIN" "$CORE_FILE" && grep -qxF "$MARK_END" "$CORE_FILE"; then
     backup "$CORE_FILE"
     strip_block "$CORE_FILE" > "$TMP/stripped"
     if [ "$DRY" = true ]; then
@@ -183,7 +183,7 @@ install_core() {
     say "Core: installed -> $CORE_FILE"; N_INSTALLED=$((N_INSTALLED+1)); return
   fi
 
-  if grep -qxF "$MARK_BEGIN" "$CORE_FILE"; then
+  if grep -qxF "$MARK_BEGIN" "$CORE_FILE" && grep -qxF "$MARK_END" "$CORE_FILE"; then
     extract_block "$CORE_FILE" > "$cur"
     if cmp -s "$new" "$cur"; then say "Core: up to date."; N_UNCHANGED=$((N_UNCHANGED+1)); return; fi
     if [ "$FORCE" != true ]; then
@@ -244,13 +244,15 @@ init_local() {
 }
 
 # --- run -----------------------------------------------------------------------
-say "Zero Slop Antigravity v${VERSION} (source: $([ "$LOCAL" = true ] && echo "local clone" || echo "$BASE_URL"))"
+if [ "$LOCAL" = true ]; then SRC_LABEL="local clone"; else SRC_LABEL="$BASE_URL"; fi
+if [ "$DRY" = true ]; then DRY_TAG=" (dry run, nothing written)"; else DRY_TAG=""; fi
+say "Zero Slop Antigravity v${VERSION} (source: ${SRC_LABEL})"
 stage_all
 install_core
 install_skills
 if [ "$INIT_LOCAL" = true ]; then init_local; fi
 
 say ""
-say "Done$([ "$DRY" = true ] && echo ' (dry run, nothing written)'). Installed: ${N_INSTALLED} · updated: ${N_UPDATED} · unchanged: ${N_UNCHANGED} · kept (modified): ${N_KEPT}"
+say "Done${DRY_TAG}. Installed: ${N_INSTALLED} · updated: ${N_UPDATED} · unchanged: ${N_UNCHANGED} · kept (modified): ${N_KEPT}"
 say "Skills dir: $SKILLS_DIR   Core: $CORE_FILE"
 say "Verify your Antigravity version reads these paths, then start a new session. Undo anytime: --uninstall."

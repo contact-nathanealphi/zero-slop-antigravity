@@ -53,6 +53,13 @@ target/
 coverage/
 .cache/
 out/
+.turbo/
+.nuxt/
+.svelte-kit/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.tsbuildinfo
 
 # Git, logs & lockfiles
 # Lockfiles are skipped for indexing; version-lock-guard may look up ONE package in them.

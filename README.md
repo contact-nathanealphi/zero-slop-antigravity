@@ -6,7 +6,7 @@
 [![Antigravity](https://img.shields.io/badge/Antigravity-Gemini%20CLI-brightgreen)](https://antigravity.google)
 [![Validate](https://github.com/contact-nathanealphi/zero-slop-antigravity/actions/workflows/validate.yml/badge.svg)](.github/workflows/validate.yml)
 
-A token-efficient **Global Core**, a **Secret Guard**, strict anti-slop rules, and **15 lazy-loaded skills** behind a router that loads at most **1 Work + 1 Guard skill** per phase. By **nathanealphi** · v3.0.0 · [Changelog](CHANGELOG.md)
+A token-efficient **Global Core**, a **Secret Guard**, strict anti-slop rules, and **15 lazy-loaded skills** behind a router that loads at most **1 Work + 1 Guard skill** per phase. By **nathanealphi** · v3.0.1 · [Changelog](CHANGELOG.md)
 
 ---
 
@@ -24,7 +24,7 @@ Default agent behavior is expensive in the wrong places: it scans from the repo 
 | **Terminal** | Raw logs in chat | Filtered / capped output |
 | **Chat** | Code echoed after every edit | `file:line` + 2–3 sentences |
 | **Secrets** | `.env` readable by accident | Secret Guard (see limits below) |
-| **Small tasks** | Always a long plan | Direct fix; plan only for 2+ files |
+| **Small tasks** | Always a long plan | Direct fix (1 file or trivial 2-file edit); plan for larger work |
 | **Destructive ops** | Runs after one approval | Always confirmed separately |
 | **Session end** | Context lost on `/clear` | `checkpoint` → 25-line `HANDOFF.md` |
 
@@ -43,7 +43,7 @@ flowchart LR
 
 1. **Global Core** (`core/GEMINI.md`): hard rules, workflow, router.
 2. **Router** picks by type: **Work** (do the job), **Guard** (protect it), **Memory** (event-driven, tiny, not counted). If several Guards apply: `db-schema-guard` > `blast-radius-analyzer` > `version-lock-guard` > `git-safety-net`. The final review swaps in `adversarial-reviewer`.
-3. **Small task** (1 file / 1 block): done directly. **Larger task**: `Active skills: [...]` + 5–7 point plan, one approval (`gas` / `ok` / `go` / `lanjut`), then run to the end.
+3. **Small task** (1 file or trivial mechanical edit across 2 files): done directly. **Larger task**: `Active skills: [...]` + 5–7 point plan, one approval (`gas` / `ok` / `go` / `lanjut`), then run to the end (cross-layer tasks split into sequential phases).
 4. **Always confirmed** even after approval: `rm -rf`, any `git push`, `reset --hard`, `git clean`, `DROP` / `TRUNCATE`, `DELETE` / `UPDATE` without `WHERE`, deploys, unplanned installs.
 
 ## Install
@@ -53,7 +53,7 @@ flowchart LR
 curl -fsSL https://raw.githubusercontent.com/contact-nathanealphi/zero-slop-antigravity/main/install.sh | bash
 
 # Pinned to a release (recommended for teams)
-curl -fsSL https://raw.githubusercontent.com/contact-nathanealphi/zero-slop-antigravity/v3.0.0/install.sh | ZS_REF=v3.0.0 bash
+curl -fsSL https://raw.githubusercontent.com/contact-nathanealphi/zero-slop-antigravity/v3.0.1/install.sh | ZS_REF=v3.0.1 bash
 ```
 
 Flags (append with `bash -s -- <flag>`): `--dry-run` · `--force` · `--init-local` · `--uninstall` · `--no-verify`.

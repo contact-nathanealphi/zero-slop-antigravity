@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.0.1]
+
+**Fixes**
+- Fixed `shellcheck` warnings (`SC2012`, `SC2045`, `SC2015`) across `install.sh` and `scripts/*.sh` so CI validation passes cleanly.
+- Installer now checks for both `<!-- zero-slop:begin -->` and `<!-- zero-slop:end -->` markers before replacing or stripping the managed block.
+- Installer warns when an existing `# Global Core` section is detected outside the managed block to prevent duplicate rules.
+
+**Improvements**
+- Refined `core/GEMINI.md` and `README.md` to allow trivial 2-file mechanical edits without a full plan and clarify sequential phases for cross-layer tasks.
+- Added modern build/test cache patterns (`.turbo/`, `.nuxt/`, `.svelte-kit/`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `*.tsbuildinfo`) to `templates/.antigravityignore`.
+- Expanded CI installer smoke test to cover `--init-local`.
+
 ## [3.0.0]
 
 **Fixes**
